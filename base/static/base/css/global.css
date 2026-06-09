@@ -88,14 +88,6 @@ input, select, button {
 
 /* ── Auth pages (login / register) ── */
 
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
 .auth-card {
   width: 100%;
   max-width: 396px;
@@ -123,4 +115,104 @@ input, select, button {
   color: #606770;
   margin-top: 4px;
   margin-bottom: 18px;
+}
+
+/* ── Auth Footer ── */
+
+.auth-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.auth-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.fb-footer {
+  background: #fff;
+  padding: 20px 0;
+  font-size: 12px;
+  color: #737373;
+}
+
+.fb-footer-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.fb-footer-langs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.fb-footer-langs a {
+  color: #737373;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fb-footer-langs a:hover {
+  text-decoration: underline;
+}
+
+.fb-footer-langs a.active {
+  color: #737373;
+}
+
+.fb-footer-plus {
+  width: 28px;
+  height: 22px;
+  border: 1px solid #ccd0d5;
+  border-radius: 2px;
+  background: #f5f6f7;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #737373;
+  padding: 0;
+}
+
+.fb-footer-plus:hover {
+  background: #ebedf0;
+}
+
+.fb-footer-hr {
+  border: none;
+  border-top: 1px solid #dddfe2;
+  margin: 0 0 8px;
+}
+
+.fb-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 4px;
+}
+
+.fb-footer-links a {
+  color: #737373;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.8;
+}
+
+.fb-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.fb-footer-copy {
+  color: #737373;
+  margin-top: 4px;
 }

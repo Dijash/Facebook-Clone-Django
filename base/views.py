@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -58,6 +59,17 @@ def logout_view(request):
 def homepage(request):
     context = {}
     return render(request, 'base/homepage.html', context)
+
+@login_required(login_url='login')
+def search_view(request):
+    query = request.GET.get('q', '').strip()
+    results = []
+    if query:
+        results = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query)
+        ).exclude(id=request.user.id)
+    return render(request, 'base/Search/search_results.html', {'results': results, 'query': query})
 
 @login_required(login_url='login')
 def watch_view(request):

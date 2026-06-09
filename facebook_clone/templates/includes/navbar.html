@@ -8,10 +8,10 @@
     <a href="{% url 'home' %}" class="navbar-logo">
       <i class="fa-brands fa-facebook"></i>
     </a>
-    <div class="navbar-search">
+    <form class="navbar-search" action="{% url 'search' %}" method="GET">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search Facebook" />
-    </div>
+      <input type="text" name="q" placeholder="Search Facebook" value="{{ request.GET.q }}" />
+    </form>
   </div>
 
   <!-- Center -->
