@@ -1,0 +1,121 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'base/css/navbar.css' %}" />
+
+<nav class="navbar">
+
+  <!-- Left -->
+  <div class="navbar-left">
+    <a href="{% url 'home' %}" class="navbar-logo">
+      <i class="fa-brands fa-facebook"></i>
+    </a>
+    <div class="navbar-search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search Facebook" />
+    </div>
+  </div>
+
+  <!-- Center -->
+  {% if request.path != '/chat/' %}
+  <div class="navbar-center">
+    <a href="{% url 'home' %}" class="navbar-tab{% if request.path == '/' %} active{% endif %}"><i class="fa-solid fa-house"></i></a>
+    <a href="{% url 'watch' %}" class="navbar-tab{% if request.path == '/watch/' %} active{% endif %}"><i class="fa-solid fa-tv"></i></a>
+    <a href="{% url 'marketplace' %}" class="navbar-tab{% if request.path == '/marketplace/' %} active{% endif %}"><i class="fa-solid fa-store"></i></a>
+    <a href="{% url 'friends' %}" class="navbar-tab{% if request.path == '/friends/' %} active{% endif %}"><i class="fa-solid fa-user-group"></i></a>
+  </div>
+  {% endif %}
+
+  <!-- Right -->
+  <div class="navbar-right">
+    {% if user.is_authenticated %}
+
+      <a href="{% url 'chat' %}" class="navbar-btn" title="Chat">
+        <i class="fa-solid fa-comment-dots"></i>
+      </a>
+      <button class="navbar-btn" title="Notifications">
+        <i class="fa-solid fa-bell"></i>
+      </button>
+
+      <div class="navbar-user" id="userMenu">
+        <button class="navbar-btn" id="userToggle" title="Account" style="overflow:hidden;">
+          {% if user.profile.image %}
+          <img src="{{ user.profile.image.url }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+          {% else %}
+          <i class="fa-solid fa-circle-user"></i>
+          {% endif %}
+        </button>
+        <div class="navbar-overlay"></div>
+
+        <!-- Dropdown -->
+        <div class="navbar-dropdown">
+
+          <!-- Profile header -->
+          <a href="{% url 'profile' %}" class="dropdown-header">
+            <div class="dropdown-avatar">
+              {% if user.profile.image %}
+              <img src="{{ user.profile.image.url }}" alt="">
+              {% else %}
+              <i class="fa-solid fa-circle-user"></i>
+              {% endif %}
+            </div>
+            <div class="dropdown-user-info">
+              <span class="dropdown-name">{{ user.username }}</span>
+              <span class="dropdown-see-profile">See your profile</span>
+            </div>
+          </a>
+
+          <hr class="divider" />
+
+          <!-- Menu items -->
+          <div class="dropdown-section">
+
+            <a href="#" class="dropdown-item">
+              <div class="dropdown-icon"><i class="fa-solid fa-gear"></i></div>
+              <div class="dropdown-item-text">
+                Settings &amp; privacy
+                <span>Manage your account settings</span>
+              </div>
+            </a>
+
+            <a href="#" class="dropdown-item">
+              <div class="dropdown-icon"><i class="fa-solid fa-circle-question"></i></div>
+              <div class="dropdown-item-text">
+                Help &amp; support
+                <span>Get help with Facebook</span>
+              </div>
+            </a>
+
+            <a href="#" class="dropdown-item">
+              <div class="dropdown-icon"><i class="fa-solid fa-moon"></i></div>
+              <div class="dropdown-item-text">
+                Display &amp; accessibility
+                <span>Dark mode, compact mode</span>
+              </div>
+            </a>
+
+            <a href="#" class="dropdown-item">
+              <div class="dropdown-icon"><i class="fa-solid fa-rotate-right"></i></div>
+              <div class="dropdown-item-text">
+                Give feedback
+                <span>Help us improve Facebook</span>
+              </div>
+            </a>
+
+          </div>
+
+          <hr class="divider" />
+
+          <a href="{% url 'logout' %}" class="dropdown-item">
+            <div class="dropdown-icon"><i class="fa-solid fa-right-from-bracket"></i></div>
+            Log Out
+          </a>
+
+        </div>
+      </div>
+
+    {% else %}
+      <a href="{% url 'login' %}" class="navbar-btn">Log in</a>
+      <a href="{% url 'register' %}" class="navbar-btn">Sign up</a>
+    {% endif %}
+  </div>
+
+</nav>

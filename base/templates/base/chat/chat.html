@@ -1,0 +1,43 @@
+{% extends 'base/chat/chat_layout.html' %}
+{% block title %}Chat{% endblock %}
+{% block chat_content %}
+
+<div class="chat-sidebar">
+    <h3>Chats</h3>
+    {% for user in users %}
+    <a href="?with={{ user.id }}" class="chat-user{% if active_user and active_user.id == user.id %} active{% endif %}">
+        <div class="chat-user-avatar"><i class="fa-solid fa-circle-user"></i></div>
+        <div>
+            <div class="chat-user-name">{{ user.username }}</div>
+            <div class="chat-user-msg">Start a conversation</div>
+        </div>
+    </a>
+    {% empty %}
+    <div style="padding: 16px; color: #65676b;">No other users connected</div>
+    {% endfor %}
+</div>
+
+<div class="chat-main">
+    {% if active_user %}
+    <div class="chat-header">{{ active_user.username }}</div>
+    <div class="chat-messages" id="chatMessages">
+        {% for msg in messages %}
+        <div class="chat-message {% if msg.sender == request.user %}sent{% else %}received{% endif %}">
+            {{ msg.message }}
+            <div class="time">{{ msg.timestamp|date:"g:i A" }}</div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;color:#65676b;margin-top:40px;">No messages yet. Say hello!</div>
+        {% endfor %}
+    </div>
+    <form class="chat-input-area" method="POST">
+        {% csrf_token %}
+        <input type="text" name="message" placeholder="Type a message..." required autofocus>
+        <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+    {% else %}
+    <div class="chat-placeholder">Select a friend to start chatting</div>
+    {% endif %}
+</div>
+
+{% endblock %}

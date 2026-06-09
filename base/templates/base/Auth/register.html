@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="{% static 'base/css/global.css' %}">
+  <style>
+    .auth-card {
+      max-width: 432px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field .input {
+      font-size: 15px;
+      padding: 12px 14px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      color: #606770;
+      margin-top: 8px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .row-3 {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .row-3 select { flex: 1; }
+
+    select {
+      border: 1px solid #dddfe2;
+      border-radius: 6px;
+      font-size: 15px;
+      padding: 10px 8px;
+      color: #1c1e21;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+      width: 100%;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23606770'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      transition: border-color .15s;
+    }
+
+    select:focus {
+      border-color: #1877f2;
+      box-shadow: 0 0 0 2px rgba(24,119,242,.2);
+    }
+
+    .gender-options {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .gender-btn {
+      flex: 1;
+      border: 1px solid #dddfe2;
+      border-radius: 6px;
+      padding: 10px 8px;
+      font-size: 15px;
+      color: #1c1e21;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: #fff;
+      transition: border-color .15s;
+    }
+
+    .gender-btn input[type="radio"] {
+      accent-color: #1877f2;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .gender-btn:has(input:checked) {
+      border-color: #1877f2;
+      background: #e7f0fd;
+    }
+
+    .policy {
+      font-size: 11px;
+      color: #777;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .policy a { color: #1877f2; text-decoration: none; }
+    .policy a:hover { text-decoration: underline; }
+
+    .btn-signup {
+      display: block;
+      margin: 0 auto 20px;
+      font-size: 17px;
+      padding: 12px 48px;
+    }
+
+    .login-row {
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .login-row a {
+      color: #1877f2;
+      font-weight: 700;
+    }
+
+    .login-row a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .auth-page { align-items: flex-start; padding-top: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="card auth-card">
+      <div class="auth-logo">facebook</div>
+      <h1 class="auth-title">Create a new account</h1>
+      <p class="auth-subtitle">It's quick and easy.</p>
+      <hr class="divider" />
+
+      <form action="{% url 'register' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="field">
+          <input class="input" type="text" name="username" placeholder="Username" autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <input class="input" type="text" name="email" placeholder="Mobile number or email address" autocomplete="email" />
+        </div>
+
+        <div class="field">
+          <input class="input" type="password" name="password" placeholder="New password" autocomplete="new-password" />
+        </div>
+
+        <div class="field">
+          <label class="section-label" for="profileImage">Profile image (optional)</label>
+          <input class="input" type="file" name="image" id="profileImage" accept="image/*" style="padding:8px;font-size:14px;">
+        </div>
+
+        <span class="section-label">Date of birth</span>
+        <div class="row-3">
+          <select name="day">
+            <option value="">Day</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+            <option>13</option><option>14</option><option>15</option><option>16</option>
+            <option>17</option><option>18</option><option>19</option><option>20</option>
+            <option>21</option><option>22</option><option>23</option><option>24</option>
+            <option>25</option><option>26</option><option>27</option><option>28</option>
+            <option>29</option><option>30</option><option>31</option>
+          </select>
+          <select name="month">
+            <option value="">Month</option>
+            <option>Jan</option><option>Feb</option><option>Mar</option>
+            <option>Apr</option><option>May</option><option>Jun</option>
+            <option>Jul</option><option>Aug</option><option>Sep</option>
+            <option>Oct</option><option>Nov</option><option>Dec</option>
+          </select>
+          <select name="year">
+            <option value="">Year</option>
+            <script>
+              for (let y = new Date().getFullYear(); y >= 1905; y--) {
+                document.write(`<option>${y}</option>`);
+              }
+            </script>
+          </select>
+        </div>
+
+        <span class="section-label">Gender</span>
+        <div class="gender-options">
+          <label class="gender-btn">
+            Female <input type="radio" name="gender" value="female" />
+          </label>
+          <label class="gender-btn">
+            Male <input type="radio" name="gender" value="male" />
+          </label>
+          <label class="gender-btn">
+            Custom <input type="radio" name="gender" value="custom" />
+          </label>
+        </div>
+
+        <p class="policy">
+          By clicking Sign Up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a>
+          and <a href="#">Cookies Policy</a>. You may receive SMS notifications from us and can opt
+          out at any time.
+        </p>
+
+        <button class="btn btn-success btn-signup" type="submit">Sign Up</button>
+      </form>
+
+      <div class="login-row">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
