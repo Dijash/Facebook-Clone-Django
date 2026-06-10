@@ -125,6 +125,10 @@
 
     @media (max-width: 480px) {
       .auth-page { align-items: flex-start; padding-top: 32px; }
+      .auth-card { padding: 16px 12px 24px; }
+      .row-3 { flex-direction: column; gap: 8px; }
+      .gender-options { flex-direction: column; gap: 6px; }
+      .btn-signup { width: 100%; }
     }
   </style>
 </head>
@@ -149,7 +153,14 @@
         </div>
 
         <div class="field">
-          <input class="input" type="password" name="password" placeholder="New password" autocomplete="new-password" />
+          <input class="input" type="tel" name="phone" placeholder="Phone number (optional)" autocomplete="tel" />
+        </div>
+
+        <div class="field">
+          <div class="password-wrap">
+            <input class="input" type="password" name="password" placeholder="New password" autocomplete="new-password" id="regPassword" />
+            <button type="button" class="password-toggle" onclick="togglePass('regPassword', this)"><i class="fa-regular fa-eye"></i></button>
+          </div>
         </div>
 
         <div class="field">
@@ -216,5 +227,17 @@
   </div>
 
 {% include 'includes/footer.html' %}
+<script>
+function togglePass(id, btn) {
+  var inp = document.getElementById(id);
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+  } else {
+    inp.type = 'password';
+    btn.innerHTML = '<i class="fa-regular fa-eye"></i>';
+  }
+}
+</script>
 </body>
 </html>

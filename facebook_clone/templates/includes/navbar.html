@@ -1,6 +1,4 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'base/css/navbar.css' %}" />
-
 <nav class="navbar">
 
   <!-- Left -->
@@ -8,7 +6,7 @@
     <a href="{% url 'home' %}" class="navbar-logo">
       <i class="fa-brands fa-facebook"></i>
     </a>
-    <form class="navbar-search" action="{% url 'search' %}" method="GET">
+    <form class="navbar-search" id="navbarSearch" action="{% url 'search' %}" method="GET">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input type="text" name="q" placeholder="Search Facebook" value="{{ request.GET.q }}" />
     </form>
@@ -28,12 +26,43 @@
   <div class="navbar-right">
     {% if user.is_authenticated %}
 
-      <a href="{% url 'chat' %}" class="navbar-btn" title="Chat">
-        <i class="fa-solid fa-comment-dots"></i>
-      </a>
-      <button class="navbar-btn" title="Notifications">
-        <i class="fa-solid fa-bell"></i>
-      </button>
+      <div style="position:relative;display:flex">
+        <a href="{% url 'chat' %}" class="navbar-btn" title="Chat" id="chatNavBtn">
+          <i class="fa-solid fa-comment-dots"></i>
+          {% if chat_unread_count > 0 %}
+          <span class="notif-badge" id="chatBadge">{{ chat_unread_count }}</span>
+          {% endif %}
+        </a>
+      </div>
+
+      <div class="navbar-notif" id="notifMenu">
+        <button class="navbar-btn" id="notifToggle" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          {% if unread_count > 0 %}
+          <span class="notif-badge" id="notifBadge">{{ unread_count }}</span>
+          {% endif %}
+        </button>
+        <div class="navbar-overlay"></div>
+        <div class="navbar-dropdown notif-dropdown">
+          <div class="dropdown-header" style="font-weight:700;font-size:17px;color:#050505;cursor:default;">Notifications</div>
+          <hr class="divider" />
+      {% for n in notifications %}
+            <a href="{% if n.notification_type == 'new_post' %}{% url 'home' %}{% else %}{% url 'friends' %}{% endif %}" class="dropdown-item notif-item {% if not n.is_read %}notif-unread{% else %}notif-read{% endif %}" data-notif-id="{{ n.id }}">
+              <div class="dropdown-icon"><i class="fa-solid {% if n.notification_type == 'new_post' %}fa-file-lines{% else %}fa-user-plus{% endif %}"></i></div>
+              <div class="dropdown-item-text">
+                <span>{{ n.message }}</span>
+                <span style="font-size:12px;color:#65676b;">{{ n.created_at|timesince }} ago</span>
+              </div>
+            </a>
+          {% empty %}
+          <div style="padding:16px;text-align:center;color:#65676b;font-size:14px;">No notifications</div>
+          {% endfor %}
+          {% if notifications %}
+          <hr class="divider" />
+          <button class="dropdown-item" id="markReadBtn" style="justify-content:center;color:#1877f2;font-weight:600;">Mark all as read</button>
+          {% endif %}
+        </div>
+      </div>
 
       <div class="navbar-user" id="userMenu">
         <button class="navbar-btn" id="userToggle" title="Account" style="overflow:hidden;">

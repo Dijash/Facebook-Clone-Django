@@ -20,6 +20,23 @@ input, select, button {
   font-family: inherit;
 }
 
+/* ── Layout ── */
+
+.layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 8px;
+  min-height: 100vh;
+}
+
+@media (max-width: 480px) {
+  .layout { padding-top: 4px; }
+}
+
+.layout-main {
+  width: 100%;
+}
+
 /* ── Card ── */
 
 .card {
@@ -133,6 +150,11 @@ input, select, button {
   padding: 24px;
 }
 
+@media (max-width: 480px) {
+  .auth-page { padding: 16px; }
+  .auth-card { max-width: 100%; }
+}
+
 .fb-footer {
   background: #fff;
   padding: 20px 0;
@@ -215,4 +237,39 @@ input, select, button {
 .fb-footer-copy {
   color: #737373;
   margin-top: 4px;
+}
+
+/* ── Password toggle ── */
+
+.password-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.password-wrap .input {
+  margin-bottom: 0;
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #65676b;
+  font-size: 18px;
+  transition: background .15s;
+}
+
+.password-toggle:hover {
+  background: #e4e6eb;
 }

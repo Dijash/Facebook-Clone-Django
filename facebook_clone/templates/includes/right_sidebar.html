@@ -1,0 +1,54 @@
+{% load static %}
+<aside class="right-sidebar">
+  <div class="friends-panel">
+    <div class="friends-panel-header">
+      <span class="friends-panel-title">Contacts</span>
+      <div class="friends-panel-actions">
+        <button class="friends-icon-btn" title="Video call"><i class="fa-solid fa-video"></i></button>
+        <button class="friends-icon-btn" title="Search contacts"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <button class="friends-icon-btn" title="More options"><i class="fa-solid fa-ellipsis"></i></button>
+      </div>
+    </div>
+
+    <div class="friends-section-label">ONLINE NOW</div>
+
+    {% for friend in online_friends %}
+    <a class="friend-item" href="#">
+      <div class="friend-avatar-wrap">
+        {% if friend.profile.image %}
+        <img class="friend-avatar" src="{{ friend.profile.image.url }}" alt="{{ friend.username }}" />
+        {% else %}
+        <div class="friend-avatar-placeholder">{{ friend.username|make_list|first|upper }}</div>
+        {% endif %}
+        <span class="online-dot"></span>
+      </div>
+      <span class="friend-name">{{ friend.username|title }}</span>
+    </a>
+    {% empty %}
+    <div class="friend-empty">No friends online</div>
+    {% endfor %}
+
+    <div class="friends-divider"></div>
+    <div class="friends-section-label">RECENTLY ACTIVE</div>
+
+    {% for friend in all_friends %}
+    <a class="friend-item" href="#">
+      <div class="friend-avatar-wrap">
+        {% if friend.profile.image %}
+        <img class="friend-avatar" src="{{ friend.profile.image.url }}" alt="{{ friend.username }}" />
+        {% else %}
+        <div class="friend-avatar-placeholder">{{ friend.username|make_list|first|upper }}</div>
+        {% endif %}
+      </div>
+      <div>
+        <div class="friend-name">{{ friend.username|title }}</div>
+        {% if friend.profile.last_active %}
+        <div class="friend-status">Active {{ friend.profile.last_active|timesince }} ago</div>
+        {% endif %}
+      </div>
+    </a>
+    {% empty %}
+    <div class="friend-empty">No recently active friends</div>
+    {% endfor %}
+  </div>
+</aside>
