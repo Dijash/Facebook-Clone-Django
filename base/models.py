@@ -49,6 +49,7 @@ class Comment(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     image = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    cover = models.ImageField(upload_to='covers/', blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     last_active = models.DateTimeField(auto_now=True)
 

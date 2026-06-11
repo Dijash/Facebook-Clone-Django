@@ -84,22 +84,22 @@
     <div class="post-card">
       <div class="post-header">
         {% if post.author.profile.image %}
-        <img class="post-avatar" src="{{ post.author.profile.image.url }}" alt="{{ post.author.username }}" />
+        <a href="{% url 'user_profile' post.author.username %}"><img class="post-avatar" src="{{ post.author.profile.image.url }}" alt="{{ post.author.username }}" /></a>
         {% else %}
-        <div class="post-avatar-placeholder">{{ post.author.username|make_list|first|upper }}</div>
+        <a href="{% url 'user_profile' post.author.username %}"><div class="post-avatar-placeholder">{{ post.author.username|make_list|first|upper }}</div></a>
         {% endif %}
         <div class="post-meta">
-          <div class="post-author">{{ post.author.username|title }}</div>
+          <a href="{% url 'user_profile' post.author.username %}" class="post-author">{{ post.author.username|title }}</a>
           <div class="post-time">{{ post.created_at|timesince }} ago · <i class="fa-solid fa-globe"></i></div>
         </div>
         {% if post.author == user %}
         <div class="post-more-wrapper">
           <button class="post-more"><i class="fa-solid fa-ellipsis"></i></button>
           <div class="post-more-dropdown">
-            <form method="POST" action="{% url 'delete_post' post.id %}">
+            <form method="POST" action="{% url 'delete_post' post.id %}" id="deletePostForm{{ post.id }}" style="display:none;">
               {% csrf_token %}
-              <button type="submit" class="post-delete-btn"><i class="fa-regular fa-trash-can"></i> Delete post</button>
             </form>
+            <button type="button" class="post-delete-btn" onclick="openDeleteModal('post', '{{ post.id }}')"><i class="fa-regular fa-trash-can"></i> Delete post</button>
           </div>
         </div>
         {% endif %}
@@ -142,13 +142,13 @@
         {% if not comment.parent %}
         <div class="comment">
           {% if comment.user.profile.image %}
-          <img class="comment-avatar" src="{{ comment.user.profile.image.url }}" alt="{{ comment.user.username }}" />
+          <a href="{% url 'user_profile' comment.user.username %}"><img class="comment-avatar" src="{{ comment.user.profile.image.url }}" alt="{{ comment.user.username }}" /></a>
           {% else %}
-          <div class="comment-avatar-placeholder">{{ comment.user.username|make_list|first|upper }}</div>
+          <a href="{% url 'user_profile' comment.user.username %}"><div class="comment-avatar-placeholder">{{ comment.user.username|make_list|first|upper }}</div></a>
           {% endif %}
           <div>
             <div class="comment-bubble">
-              <div class="comment-author">{{ comment.user.username|title }}</div>
+              <a href="{% url 'user_profile' comment.user.username %}" class="comment-author">{{ comment.user.username|title }}</a>
               {{ comment.content }}
             </div>
             <div class="comment-actions">
@@ -163,13 +163,13 @@
             {% for reply in comment.replies.all %}
             <div class="comment comment-reply">
               {% if reply.user.profile.image %}
-              <img class="comment-avatar" src="{{ reply.user.profile.image.url }}" alt="{{ reply.user.username }}" />
+              <a href="{% url 'user_profile' reply.user.username %}"><img class="comment-avatar" src="{{ reply.user.profile.image.url }}" alt="{{ reply.user.username }}" /></a>
               {% else %}
-              <div class="comment-avatar-placeholder">{{ reply.user.username|make_list|first|upper }}</div>
+              <a href="{% url 'user_profile' reply.user.username %}"><div class="comment-avatar-placeholder">{{ reply.user.username|make_list|first|upper }}</div></a>
               {% endif %}
               <div>
                 <div class="comment-bubble">
-                  <div class="comment-author">{{ reply.user.username|title }}</div>
+                  <a href="{% url 'user_profile' reply.user.username %}" class="comment-author">{{ reply.user.username|title }}</a>
                   {{ reply.content }}
                 </div>
                 <div class="comment-actions">
@@ -223,22 +223,7 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal-dialog">
-    <div class="modal-header">
-      <span class="modal-title">Delete comment?</span>
-      <button type="button" class="modal-close" id="modalClose">&times;</button>
-    </div>
-    <p class="modal-body">Are you sure you want to delete this comment? This action cannot be undone.</p>
-    <div class="modal-footer">
-      <button type="button" class="modal-cancel" id="modalCancel">Cancel</button>
-      <form method="POST" id="deleteForm">
-        {% csrf_token %}
-        <button type="submit" class="modal-confirm">Delete</button>
-      </form>
-    </div>
-  </div>
-</div>
+{% include 'base/components/confirm_delete_modal.html' %}
 
 <script>
   function getCSRFToken() {
@@ -364,7 +349,7 @@
     }
     var delBtn = e.target.closest('.comment-delete-btn');
     if (delBtn) {
-      openDeleteModal(delBtn.getAttribute('data-comment-id'));
+      openDeleteModal('comment', delBtn.getAttribute('data-comment-id'));
       return;
     }
     if (e.target.closest('.modal-overlay') && !e.target.closest('.modal-dialog')) {
@@ -431,9 +416,20 @@
     }
   });
 
-  // ── Delete comment modal ──
-  function openDeleteModal(commentId) {
-    document.getElementById('deleteForm').action = '/comment/' + commentId + '/delete/';
+  // ── Delete comment / post modal ──
+  function openDeleteModal(type, id) {
+    var form = document.getElementById('deleteForm');
+    var title = document.getElementById('modalTitle');
+    var body = document.getElementById('modalBody');
+    if (type === 'post') {
+      form.action = '/post/' + id + '/delete/';
+      title.textContent = 'Delete post?';
+      body.textContent = 'Are you sure you want to delete this post? This action cannot be undone.';
+    } else {
+      form.action = '/comment/' + id + '/delete/';
+      title.textContent = 'Delete comment?';
+      body.textContent = 'Are you sure you want to delete this comment? This action cannot be undone.';
+    }
     document.getElementById('deleteModal').classList.add('open');
   }
 

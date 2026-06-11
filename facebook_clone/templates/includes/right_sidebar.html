@@ -13,7 +13,7 @@
     <div class="friends-section-label">ONLINE NOW</div>
 
     {% for friend in online_friends %}
-    <a class="friend-item" href="#">
+    <a class="friend-item" href="{% url 'user_profile' friend.username %}">
       <div class="friend-avatar-wrap">
         {% if friend.profile.image %}
         <img class="friend-avatar" src="{{ friend.profile.image.url }}" alt="{{ friend.username }}" />
@@ -32,7 +32,7 @@
     <div class="friends-section-label">RECENTLY ACTIVE</div>
 
     {% for friend in all_friends %}
-    <a class="friend-item" href="#">
+    <a class="friend-item" href="{% url 'user_profile' friend.username %}">
       <div class="friend-avatar-wrap">
         {% if friend.profile.image %}
         <img class="friend-avatar" src="{{ friend.profile.image.url }}" alt="{{ friend.username }}" />

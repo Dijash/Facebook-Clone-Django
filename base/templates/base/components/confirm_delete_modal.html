@@ -1,0 +1,16 @@
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Delete?</span>
+      <button type="button" class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <p class="modal-body" id="modalBody">Are you sure? This action cannot be undone.</p>
+    <div class="modal-footer">
+      <button type="button" class="modal-cancel" id="modalCancel">Cancel</button>
+      <form method="POST" id="deleteForm">
+        {% csrf_token %}
+        <button type="submit" class="modal-confirm">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>

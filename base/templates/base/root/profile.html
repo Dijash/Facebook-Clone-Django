@@ -1,3 +1,618 @@
 {% extends 'layouts/main.html' %}
-{% block title %}Profile{% endblock %}
-{% block content %}<h1>Profile</h1>{% endblock %}
+{% load static %}
+{% block title %}{{ profile_user.username|title }}'s Profile{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'base/css/homepage.css' %}">
+<link rel="stylesheet" href="{% static 'base/css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+
+  <!-- PROFILE HEADER -->
+  <div class="profile-header">
+    <div class="profile-cover"{% if profile_user.profile.cover %} style="background-image:url('{{ profile_user.profile.cover.url }}');background-size:cover;background-position:center;"{% endif %}>
+      <div class="profile-cover-gradient"></div>
+      {% if profile_user == request.user %}
+      <button class="profile-cover-edit" id="editProfileBtnCover" title="Edit cover photo">
+        <i class="fa-solid fa-camera"></i>
+      </button>
+      {% endif %}
+    </div>
+    <div class="profile-info-row">
+      <div class="profile-avatar-wrap">
+        {% if profile_user.profile.image %}
+        <img class="profile-avatar" src="{{ profile_user.profile.image.url }}" alt="{{ profile_user.username }}" />
+        {% else %}
+        <div class="profile-avatar-placeholder">{{ profile_user.username|make_list|first|upper }}</div>
+        {% endif %}
+        {% if profile_user == request.user %}
+        <button class="profile-avatar-edit" id="editProfileBtn" title="Edit profile">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+        {% endif %}
+      </div>
+      <div class="profile-info">
+        <h1 class="profile-name">{{ profile_user.first_name|title }} {{ profile_user.last_name|title }}</h1>
+        <div class="profile-username">@{{ profile_user.username }}</div>
+        <div class="profile-meta">
+          <span><i class="fa-regular fa-user"></i> {{ friend_count }} friends</span>
+          {% if profile_user.profile.phone %}
+          <span><i class="fa-regular fa-phone"></i> {{ profile_user.profile.phone }}</span>
+          {% endif %}
+          <span><i class="fa-regular fa-envelope"></i> {{ profile_user.email }}</span>
+          <span><i class="fa-regular fa-calendar"></i> Joined {{ profile_user.date_joined|date:"F Y" }}</span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        {% if profile_user == request.user %}
+        <button class="profile-action-btn profile-edit-btn" id="editProfileBtn2">
+          <i class="fa-solid fa-pen"></i> Edit profile
+        </button>
+        {% elif friend_status %}
+          {% if friend_status.status == 'accepted' %}
+          <span class="profile-friend-badge"><i class="fa-solid fa-check"></i> Friends</span>
+          {% elif friend_status.status == 'pending_sent' %}
+          <span class="profile-friend-badge pending">Request sent</span>
+          {% elif friend_status.status == 'pending_received' %}
+          <form method="POST" action="{% url 'accept_friend_request' friend_status.request_id %}" style="display:inline">
+            {% csrf_token %}
+            <button class="profile-action-btn" type="submit"><i class="fa-solid fa-check"></i> Accept request</button>
+          </form>
+          {% endif %}
+        {% else %}
+        <form method="POST" action="{% url 'send_friend_request' profile_user.id %}">
+          {% csrf_token %}
+          <button class="profile-action-btn" type="submit"><i class="fa-solid fa-user-plus"></i> Add friend</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    <div class="profile-tabs">
+      <a href="#" class="profile-tab active">Posts</a>
+      <a href="#" class="profile-tab">About</a>
+      <a href="#" class="profile-tab">Friends</a>
+      <a href="#" class="profile-tab">Photos</a>
+    </div>
+  </div>
+
+  <!-- PROFILE BODY -->
+  <div class="profile-body">
+    <div class="profile-sidebar">
+      <div class="profile-sidebar-card">
+        <h3>Intro</h3>
+        <div class="intro-item"><i class="fa-regular fa-user"></i> 
+          {% if profile_user.first_name %}
+          {{ profile_user.first_name|title }} {{ profile_user.last_name|title }}
+          {% else %}
+          {{ profile_user.username|title }}
+          {% endif %}
+        </div>
+        {% if profile_user.profile.phone %}
+        <div class="intro-item"><i class="fa-regular fa-phone"></i> {{ profile_user.profile.phone }}</div>
+        {% endif %}
+        <div class="intro-item"><i class="fa-regular fa-envelope"></i> {{ profile_user.email }}</div>
+        <div class="intro-item"><i class="fa-regular fa-calendar"></i> Joined {{ profile_user.date_joined|date:"F Y" }}</div>
+        <div class="intro-divider"></div>
+        <div class="intro-item"><i class="fa-solid fa-users"></i> {{ friend_count }} friends</div>
+      </div>
+
+      {% if friends %}
+      <div class="profile-sidebar-card" style="margin-top:16px;">
+        <h3>Friends</h3>
+        <div class="profile-friends-grid">
+          {% for friend in friends|slice:":9" %}
+          <a href="{% url 'user_profile' friend.username %}" class="profile-friend-card">
+            {% if friend.profile.image %}
+            <img src="{{ friend.profile.image.url }}" alt="{{ friend.username }}" />
+            {% else %}
+            <div class="profile-friend-placeholder">{{ friend.username|make_list|first|upper }}</div>
+            {% endif %}
+            <span>{{ friend.first_name|title|default:friend.username|title }}</span>
+          </a>
+          {% endfor %}
+        </div>
+        {% if friend_count > 9 %}
+        <div style="text-align:center;margin-top:8px;">
+          <span style="font-size:14px;color:#65676b;">See all {{ friend_count }} friends</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="profile-content">
+      {% if profile_user == request.user %}
+      <!-- Create Post -->
+      <div class="create-post" id="createPost">
+        <div class="create-post-top">
+          {% if user.profile.image %}
+          <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" />
+          {% else %}
+          <div class="create-post-avatar-placeholder">{{ user.username|make_list|first|upper }}</div>
+          {% endif %}
+          <div class="create-post-input" id="postInputTrigger">What's on your mind, {{ user.username|title }}?</div>
+        </div>
+        <form class="create-post-form" id="postForm" method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="create-post-divider"></div>
+          <textarea class="create-post-textarea" name="content" placeholder="What's on your mind, {{ user.username|title }}?" rows="3"></textarea>
+          <div class="create-post-image-row" id="imageRow" style="display:none">
+            <span class="create-post-file-name" id="fileName">No file chosen</span>
+            <button type="button" class="create-post-image-remove" id="imageRemove">&times;</button>
+          </div>
+          <input type="file" id="fileInput" name="image" accept="image/*,video/*" style="display:none" />
+          <input type="file" id="videoInput" name="video" accept="video/*" style="display:none" />
+          <div class="create-post-divider"></div>
+          <div class="create-post-actions">
+            <button type="button" class="post-action-btn" id="photoBtn"><i class="fa-solid fa-images"></i> Photo</button>
+            <button type="button" class="post-action-btn" id="videoBtn"><i class="fa-solid fa-video"></i> Video</button>
+            <button type="submit" class="post-action-btn post-submit-btn"><i class="fa-regular fa-paper-plane"></i> Post</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+
+      <!-- Posts -->
+      <h3 class="profile-section-title">
+        {% if profile_user == request.user %}Your{% else %}{{ profile_user.first_name|title }}'s{% endif %} Posts
+      </h3>
+
+      {% for post in posts %}
+      <div class="post-card">
+        <div class="post-header">
+          {% if post.author.profile.image %}
+          <img class="post-avatar" src="{{ post.author.profile.image.url }}" alt="{{ post.author.username }}" />
+          {% else %}
+          <div class="post-avatar-placeholder">{{ post.author.username|make_list|first|upper }}</div>
+          {% endif %}
+          <div class="post-meta">
+            <a href="{% url 'user_profile' post.author.username %}" class="post-author">{{ post.author.username|title }}</a>
+            <div class="post-time">{{ post.created_at|timesince }} ago · <i class="fa-solid fa-globe"></i></div>
+          </div>
+          {% if post.author == user %}
+          <div class="post-more-wrapper">
+            <button class="post-more"><i class="fa-solid fa-ellipsis"></i></button>
+            <div class="post-more-dropdown">
+              <form method="POST" action="{% url 'delete_post' post.id %}" id="deletePostForm{{ post.id }}" style="display:none;">
+                {% csrf_token %}
+              </form>
+              <button type="button" class="post-delete-btn" onclick="openDeleteModal('post', '{{ post.id }}')"><i class="fa-regular fa-trash-can"></i> Delete post</button>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if post.content %}
+        <div class="post-text{% if not post.image and not post.video %} post-text-large{% endif %}">
+          {{ post.content }}
+        </div>
+        {% endif %}
+
+        {% if post.image %}
+        <img class="post-image" src="{{ post.image.url }}" alt="{{ post.caption }}" />
+        {% endif %}
+
+        {% if post.video %}
+        <video class="post-video" controls>
+          <source src="{{ post.video.url }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        {% endif %}
+
+        <div class="post-reactions-bar">
+          <div class="reactions-count">
+            <span><i class="fa-regular fa-thumbs-up"></i></span>
+            <span class="post-like-count">{{ post.likes.count }}</span>
+          </div>
+          <span>{{ post.comments.count }} comments</span>
+        </div>
+        <div class="post-divider"></div>
+        <div class="post-actions">
+          <button class="post-btn{% if user in post.likes.all %} liked{% endif %} like-post-btn" data-url="{% url 'like_post' post.id %}"><i class="fa-regular fa-thumbs-up"></i> Like</button>
+          <button class="post-btn"><i class="fa-regular fa-comment"></i> Comment</button>
+          <button class="post-btn"><i class="fa-solid fa-share-nodes"></i> Share</button>
+        </div>
+
+        <div class="post-divider"></div>
+        <div class="post-comments">
+          {% for comment in post.comments.all %}
+          {% if not comment.parent %}
+          <div class="comment">
+            {% if comment.user.profile.image %}
+            <img class="comment-avatar" src="{{ comment.user.profile.image.url }}" alt="{{ comment.user.username }}" />
+            {% else %}
+            <div class="comment-avatar-placeholder">{{ comment.user.username|make_list|first|upper }}</div>
+            {% endif %}
+            <div>
+              <div class="comment-bubble">
+                <a href="{% url 'user_profile' comment.user.username %}" class="comment-author">{{ comment.user.username|title }}</a>
+                {{ comment.content }}
+              </div>
+              <div class="comment-actions">
+                <button type="button" class="comment-like-btn{% if user in comment.likes.all %} liked{% endif %} like-comment-btn" data-url="{% url 'like_comment' comment.id %}">Like{% if comment.likes.count %} <span class="like-count">({{ comment.likes.count }})</span>{% endif %}</button>
+                <button type="button" class="comment-reply-toggle" data-comment-id="{{ comment.id }}">Reply</button>
+                <span>{{ comment.created_at|timesince }} ago</span>
+                {% if comment.user == user %}
+                <button type="button" class="comment-delete-btn" data-comment-id="{{ comment.id }}">Delete</button>
+                {% endif %}
+              </div>
+
+              {% for reply in comment.replies.all %}
+              <div class="comment comment-reply">
+                {% if reply.user.profile.image %}
+                <img class="comment-avatar" src="{{ reply.user.profile.image.url }}" alt="{{ reply.user.username }}" />
+                {% else %}
+                <div class="comment-avatar-placeholder">{{ reply.user.username|make_list|first|upper }}</div>
+                {% endif %}
+                <div>
+                  <div class="comment-bubble">
+                    <a href="{% url 'user_profile' reply.user.username %}" class="comment-author">{{ reply.user.username|title }}</a>
+                    {{ reply.content }}
+                  </div>
+                  <div class="comment-actions">
+                    <button type="button" class="comment-like-btn{% if user in reply.likes.all %} liked{% endif %} like-comment-btn" data-url="{% url 'like_comment' reply.id %}">Like{% if reply.likes.count %} <span class="like-count">({{ reply.likes.count }})</span>{% endif %}</button>
+                    <span>{{ reply.created_at|timesince }} ago</span>
+                    {% if reply.user == user %}
+                    <button type="button" class="comment-delete-btn" data-comment-id="{{ reply.id }}">Delete</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+
+              <form class="comment-reply-form" id="replyForm{{ comment.id }}" method="POST" action="{% url 'reply_comment' comment.id %}">
+                {% csrf_token %}
+                <div class="comment-input-row">
+                  {% if user.profile.image %}
+                  <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" />
+                  {% else %}
+                  <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
+                  {% endif %}
+                  <input class="comment-input" type="text" name="content" placeholder="Write a reply…" required />
+                </div>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+          <form class="comment-input-row add-comment-form" method="POST" action="{% url 'add_comment' %}">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ post.id }}" />
+            {% if user.profile.image %}
+            <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" />
+            {% else %}
+            <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
+            {% endif %}
+            <input class="comment-input" type="text" name="content" placeholder="Write a comment…" required />
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-feed">
+        <p>No posts yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% include 'base/components/confirm_delete_modal.html' %}
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-dialog" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title">Edit profile</span>
+      <button class="modal-close" id="editModalClose">&times;</button>
+    </div>
+    <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;">
+              <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">First name</label>
+              <input class="input" type="text" name="first_name" value="{{ user.first_name }}" placeholder="First name" />
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Last name</label>
+              <input class="input" type="text" name="last_name" value="{{ user.last_name }}" placeholder="Last name" />
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Email</label>
+            <input class="input" type="email" name="email" value="{{ user.email }}" placeholder="Email" />
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Phone</label>
+            <input class="input" type="text" name="phone" value="{{ user.profile.phone|default:'' }}" placeholder="Phone number" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-cancel" id="editModalCancel">Cancel</button>
+        <button type="submit" class="modal-confirm" style="background:#1877f2;">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Hidden forms for direct image uploads -->
+<form id="profileImageForm" method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data" style="display:none">
+  {% csrf_token %}
+  <input type="file" id="profileImageInput" name="image" accept="image/*" />
+</form>
+<form id="coverImageForm" method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data" style="display:none">
+  {% csrf_token %}
+  <input type="file" id="coverImageInput" name="cover" accept="image/*" />
+</form>
+
+<script>
+  // ── Direct image uploads ──
+  var profileImgInput = document.getElementById('profileImageInput');
+  var coverImgInput = document.getElementById('coverImageInput');
+
+  document.getElementById('editProfileBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    profileImgInput.click();
+  });
+
+  document.getElementById('editProfileBtnCover').addEventListener('click', function(e) {
+    e.preventDefault();
+    coverImgInput.click();
+  });
+
+  profileImgInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      document.getElementById('profileImageForm').submit();
+    }
+  });
+
+  coverImgInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      document.getElementById('coverImageForm').submit();
+    }
+  });
+
+  // ── Create post ──
+  var postForm = document.getElementById('postForm');
+  var postTrigger = document.getElementById('postInputTrigger');
+  var photoBtn = document.getElementById('photoBtn');
+  var videoBtn = document.getElementById('videoBtn');
+  var imageRow = document.getElementById('imageRow');
+  var imageRemove = document.getElementById('imageRemove');
+  var fileInput = document.getElementById('fileInput');
+  var videoInput = document.getElementById('videoInput');
+  var fileName = document.getElementById('fileName');
+
+  if (postTrigger && postForm) {
+    postTrigger.addEventListener('click', function() {
+      postForm.classList.add('expanded');
+      postTrigger.style.display = 'none';
+      postForm.querySelector('.create-post-textarea').focus();
+    });
+  }
+
+  if (photoBtn) {
+    photoBtn.addEventListener('click', function() { fileInput.click(); });
+  }
+
+  if (videoBtn) {
+    videoBtn.addEventListener('click', function() { videoInput.click(); });
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      videoInput.value = '';
+      if (fileInput.files.length > 0) {
+        fileName.textContent = fileInput.files[0].name;
+        imageRow.style.display = 'flex';
+      }
+    });
+  }
+
+  if (videoInput) {
+    videoInput.addEventListener('change', function() {
+      fileInput.value = '';
+      if (videoInput.files.length > 0) {
+        fileName.textContent = videoInput.files[0].name;
+        imageRow.style.display = 'flex';
+      }
+    });
+  }
+
+  if (imageRemove) {
+    imageRemove.addEventListener('click', function() {
+      fileInput.value = '';
+      videoInput.value = '';
+      fileName.textContent = 'No file chosen';
+      imageRow.style.display = 'none';
+    });
+  }
+
+  // ── Edit profile modal ──
+  var editModal = document.getElementById('editProfileModal');
+  var editBtns = document.querySelectorAll('#editProfileBtn2');
+  var editClose = document.getElementById('editModalClose');
+  var editCancel = document.getElementById('editModalCancel');
+
+  editBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      editModal.classList.add('open');
+    });
+  });
+
+  editClose.addEventListener('click', function() { editModal.classList.remove('open'); });
+  editCancel.addEventListener('click', function() { editModal.classList.remove('open'); });
+  editModal.addEventListener('click', function(e) {
+    if (e.target === editModal) editModal.classList.remove('open');
+  });
+
+  // ── AJAX like & comment ──
+  function getCSRFToken() {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.startsWith('csrftoken=')) return c.substring(10);
+    }
+    return '';
+  }
+
+  function ajaxLike(url, btn) {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.classList.toggle('liked', data.liked);
+      var countSpan = btn.querySelector('.like-count');
+      if (countSpan) {
+        countSpan.textContent = data.count ? '(' + data.count + ')' : '';
+      }
+      var postCard = btn.closest('.post-card');
+      if (postCard) {
+        var postCount = postCard.querySelector('.post-like-count');
+        if (postCount) postCount.textContent = data.count;
+      }
+    });
+  }
+
+  function addCommentHTML(data, container) {
+    var avatarHtml = data.avatar
+      ? '<a href="/profile/' + data.author + '/"><img class="comment-avatar" src="' + data.avatar + '" alt="' + data.author + '" /></a>'
+      : '<a href="/profile/' + data.author + '/"><div class="comment-avatar-placeholder">' + data.author.charAt(0).toUpperCase() + '</div></a>';
+    var html = '<div class="comment" id="comment-' + data.id + '">'
+      + '<div>' + avatarHtml + '</div>'
+      + '<div><div class="comment-bubble"><a href="/profile/' + data.author + '/" class="comment-author">' + data.author_title + '</a>'
+      + data.content
+      + '</div><div class="comment-actions">'
+      + '<button type="button" class="comment-like-btn like-comment-btn" data-url="/comment/' + data.id + '/like/">Like</button>'
+      + '<button type="button" class="comment-reply-toggle" data-comment-id="' + data.id + '">Reply</button>'
+      + '<span>' + data.created_at + '</span>'
+      + '<button type="button" class="comment-delete-btn" data-comment-id="' + data.id + '">Delete</button>'
+      + '</div></div></div>';
+    container.insertAdjacentHTML('beforebegin', html);
+  }
+
+  function addReplyHTML(data) {
+    var container = document.getElementById('replyForm' + data.parent_id);
+    if (!container) return;
+    var avatarHtml = data.avatar
+      ? '<a href="/profile/' + data.author + '/"><img class="comment-avatar" src="' + data.avatar + '" alt="' + data.author + '" /></a>'
+      : '<a href="/profile/' + data.author + '/"><div class="comment-avatar-placeholder">' + data.author.charAt(0).toUpperCase() + '</div></a>';
+    var html = '<div class="comment comment-reply" id="comment-' + data.id + '">'
+      + '<div>' + avatarHtml + '</div>'
+      + '<div><div class="comment-bubble"><a href="/profile/' + data.author + '/" class="comment-author">' + data.author_title + '</a>'
+      + data.content
+      + '</div><div class="comment-actions">'
+      + '<button type="button" class="comment-like-btn like-comment-btn" data-url="/comment/' + data.id + '/like/">Like</button>'
+      + '<span>' + data.created_at + '</span>'
+      + '<button type="button" class="comment-delete-btn" data-comment-id="' + data.id + '">Delete</button>'
+      + '</div></div></div>';
+    container.insertAdjacentHTML('beforebegin', html);
+  }
+
+  function ajaxFormSubmit(form, url) {
+    var data = new FormData(form);
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken(), 'X-Requested-With': 'XMLHttpRequest' },
+      body: data,
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(resp) {
+      if (resp.error) return;
+      var input = form.querySelector('input[name=content]');
+      if (input) input.value = '';
+      if (resp.parent_id) {
+        addReplyHTML(resp);
+        var replyForm = document.getElementById('replyForm' + resp.parent_id);
+        if (replyForm) replyForm.style.display = 'none';
+      } else {
+        var postCard = form.closest('.post-card');
+        var commentsContainer = form.closest('.post-comments');
+        if (commentsContainer) {
+          addCommentHTML(resp, form);
+          var countSpan = postCard ? postCard.querySelector('.post-reactions-bar span:last-child') : null;
+          if (countSpan) {
+            var m = countSpan.textContent.match(/(\d+)/);
+            if (m) countSpan.textContent = countSpan.textContent.replace(m[1], parseInt(m[1]) + 1);
+          }
+        }
+      }
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    var likePostBtn = e.target.closest('.like-post-btn');
+    if (likePostBtn) {
+      ajaxLike(likePostBtn.getAttribute('data-url'), likePostBtn);
+      return;
+    }
+    var likeCommentBtn = e.target.closest('.like-comment-btn');
+    if (likeCommentBtn) {
+      ajaxLike(likeCommentBtn.getAttribute('data-url'), likeCommentBtn);
+      return;
+    }
+    var replyToggle = e.target.closest('.comment-reply-toggle');
+    if (replyToggle) {
+      var commentId = replyToggle.getAttribute('data-comment-id');
+      var form = document.getElementById('replyForm' + commentId);
+      if (form) {
+        form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+        if (form.style.display === 'flex') {
+          form.querySelector('input').focus();
+        }
+      }
+      return;
+    }
+    var delBtn = e.target.closest('.comment-delete-btn');
+    if (delBtn) {
+      openDeleteModal('comment', delBtn.getAttribute('data-comment-id'));
+      return;
+    }
+    if (e.target.closest('.modal-overlay') && !e.target.closest('.modal-dialog')) {
+      closeDeleteModal();
+    }
+  });
+
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (form.classList.contains('add-comment-form') || form.classList.contains('comment-reply-form')) {
+      e.preventDefault();
+      var url = form.getAttribute('action');
+      ajaxFormSubmit(form, url);
+    }
+  });
+
+  function openDeleteModal(type, id) {
+    var form = document.getElementById('deleteForm');
+    var title = document.getElementById('modalTitle');
+    var body = document.getElementById('modalBody');
+    if (type === 'post') {
+      form.action = '/post/' + id + '/delete/';
+      title.textContent = 'Delete post?';
+      body.textContent = 'Are you sure you want to delete this post? This action cannot be undone.';
+    } else {
+      form.action = '/comment/' + id + '/delete/';
+      title.textContent = 'Delete comment?';
+      body.textContent = 'Are you sure you want to delete this comment? This action cannot be undone.';
+    }
+    document.getElementById('deleteModal').classList.add('open');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var closeBtn = document.getElementById('modalClose');
+    var cancelBtn = document.getElementById('modalCancel');
+    if (closeBtn) closeBtn.addEventListener('click', closeDeleteModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeDeleteModal);
+  });
+</script>
+{% endblock %}

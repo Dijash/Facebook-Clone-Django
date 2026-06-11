@@ -70,6 +70,8 @@ def login_view(request):
 
 def register_view(request):
     page = 'register'
+    if request.user.is_authenticated:
+        return redirect('home')
     if request.method == 'POST':
         username = request.POST.get('username').lower()
         email = request.POST.get('email').lower()
@@ -102,14 +104,15 @@ def logout_view(request):
 
 @login_required(login_url='login')
 def homepage(request):
-    posts = Post.objects.select_related('author__profile').prefetch_related(
+    friends = get_friends(request.user)
+    friend_ids = list(friends.values_list('id', flat=True)) + [request.user.id]
+    posts = Post.objects.filter(author_id__in=friend_ids).select_related('author__profile').prefetch_related(
         'comments__user__profile',
         'comments__replies__user__profile',
         'comments__likes',
         'comments__replies__likes',
         'likes',
-    ).all().order_by('-created_at')
-    friends = get_friends(request.user)
+    ).order_by('-created_at')
     now = timezone.now()
     online_cutoff = now - timedelta(minutes=15)
     active_cutoff = now - timedelta(days=7)
@@ -281,8 +284,65 @@ def friends_view(request):
     })
 
 @login_required(login_url='login')
-def profile_view(request):
-    return render(request, 'base/root/profile.html')
+def profile_view(request, username=None):
+    if username:
+        profile_user = get_object_or_404(User, username=username)
+    else:
+        profile_user = request.user
+
+    posts = Post.objects.filter(author=profile_user).select_related('author__profile').prefetch_related(
+        'comments__user__profile',
+        'comments__replies__user__profile',
+        'comments__likes',
+        'comments__replies__likes',
+        'likes',
+    ).order_by('-created_at')
+
+    friends = get_friends(profile_user)
+    friend_count = friends.count()
+
+    friend_status = None
+    if profile_user != request.user:
+        friend_status = get_friend_status(request.user, profile_user)
+
+    context = {
+        'profile_user': profile_user,
+        'posts': posts,
+        'friends': friends,
+        'friend_count': friend_count,
+        'friend_status': friend_status,
+        'now': timezone.now(),
+    }
+    return render(request, 'base/root/profile.html', context)
+
+
+@login_required(login_url='login')
+def edit_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        phone = request.POST.get('phone', '').strip()
+        if phone:
+            user.profile.phone = phone
+        image = request.FILES.get('image')
+        if image:
+            user.profile.image = image
+        cover = request.FILES.get('cover')
+        if cover:
+            user.profile.cover = cover
+        first_name = request.POST.get('first_name', '').strip()
+        if first_name:
+            user.first_name = first_name
+        last_name = request.POST.get('last_name', '').strip()
+        if last_name:
+            user.last_name = last_name
+        email = request.POST.get('email', '').strip()
+        if email:
+            user.email = email
+        user.save()
+        user.profile.save()
+        messages.success(request, 'Profile updated successfully')
+        return redirect('profile')
+    return redirect('profile')
 
 
 @login_required(login_url='login')

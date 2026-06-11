@@ -141,18 +141,6 @@
   gap: 0;
 }
 
-.post-submit-btn {
-  background: #1877f2;
-  color: #fff;
-  border-radius: 8px;
-  font-weight: 600;
-}
-
-.post-submit-btn:hover {
-  background: #166fe5;
-  color: #fff;
-}
-
 .post-action-btn {
   flex: 1;
   display: flex;
@@ -172,6 +160,18 @@
 
 .post-action-btn:hover {
   background: #f0f2f5;
+}
+
+.post-submit-btn {
+  background: #1877f2;
+  color: #fff;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.post-submit-btn:hover {
+  background: #166fe5;
+  color: #fff;
 }
 
 .post-action-btn span {
