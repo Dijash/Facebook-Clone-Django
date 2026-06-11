@@ -52,7 +52,7 @@
         </button>
         {% elif friend_status %}
           {% if friend_status.status == 'accepted' %}
-          <span class="profile-friend-badge"><i class="fa-solid fa-check"></i> Friends</span>
+          <button class="profile-action-btn" id="unfriendBtn" style="color:#e41e3f;"><i class="fa-solid fa-user-minus"></i> Unfriend</button>
           {% elif friend_status.status == 'pending_sent' %}
           <span class="profile-friend-badge pending">Request sent</span>
           {% elif friend_status.status == 'pending_received' %}
@@ -137,7 +137,7 @@
         <form class="create-post-form" id="postForm" method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="create-post-divider"></div>
-          <textarea class="create-post-textarea" name="content" placeholder="What's on your mind, {{ user.username|title }}?" rows="3"></textarea>
+          <textarea class="create-post-textarea" name="content" placeholder="What's on your mind, {{ user.username|title }}?" rows="3" autocomplete="off"></textarea>
           <div class="create-post-image-row" id="imageRow" style="display:none">
             <span class="create-post-file-name" id="fileName">No file chosen</span>
             <button type="button" class="create-post-image-remove" id="imageRemove">&times;</button>
@@ -270,7 +270,7 @@
                   {% else %}
                   <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
                   {% endif %}
-                  <input class="comment-input" type="text" name="content" placeholder="Write a reply…" required />
+                  <input class="comment-input" type="text" name="content" placeholder="Write a reply…" required autocomplete="off" />
                 </div>
               </form>
             </div>
@@ -285,7 +285,7 @@
             {% else %}
             <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
             {% endif %}
-            <input class="comment-input" type="text" name="content" placeholder="Write a comment…" required />
+            <input class="comment-input" type="text" name="content" placeholder="Write a comment…" required autocomplete="off" />
           </form>
         </div>
       </div>
@@ -314,20 +314,20 @@
           <div style="display:flex;gap:8px;">
             <div style="flex:1;">
               <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">First name</label>
-              <input class="input" type="text" name="first_name" value="{{ user.first_name }}" placeholder="First name" />
+              <input class="input" type="text" name="first_name" value="{{ user.first_name }}" placeholder="First name" autocomplete="off" />
             </div>
             <div style="flex:1;">
               <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Last name</label>
-              <input class="input" type="text" name="last_name" value="{{ user.last_name }}" placeholder="Last name" />
+              <input class="input" type="text" name="last_name" value="{{ user.last_name }}" placeholder="Last name" autocomplete="off" />
             </div>
           </div>
           <div>
             <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Email</label>
-            <input class="input" type="email" name="email" value="{{ user.email }}" placeholder="Email" />
+            <input class="input" type="email" name="email" value="{{ user.email }}" placeholder="Email" autocomplete="off" />
           </div>
           <div>
             <label style="font-size:13px;font-weight:600;color:#65676b;margin-bottom:4px;display:block;">Phone</label>
-            <input class="input" type="text" name="phone" value="{{ user.profile.phone|default:'' }}" placeholder="Phone number" />
+            <input class="input" type="text" name="phone" value="{{ user.profile.phone|default:'' }}" placeholder="Phone number" autocomplete="off" />
           </div>
         </div>
       </div>
@@ -349,7 +349,51 @@
   <input type="file" id="coverImageInput" name="cover" accept="image/*" />
 </form>
 
+<!-- UNFRIEND CONFIRMATION MODAL -->
+<div class="modal-overlay" id="unfriendModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <span class="modal-title" id="unfriendModalTitle">Unfriend {{ profile_user.first_name|title|default:profile_user.username|title }}?</span>
+      <button type="button" class="modal-close" id="unfriendModalClose">&times;</button>
+    </div>
+    <p class="modal-body" id="unfriendModalBody">Are you sure you want to remove {{ profile_user.first_name|title|default:profile_user.username|title }} as a friend?</p>
+    <div class="modal-footer">
+      <button type="button" class="modal-cancel" id="unfriendModalCancel">Cancel</button>
+      <form method="POST" action="{% url 'unfriend' profile_user.id %}">
+        {% csrf_token %}
+        <button type="submit" class="modal-confirm">Unfriend</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
+  // ── Unfriend modal ──
+  var unfriendBtn = document.getElementById('unfriendBtn');
+  var unfriendModal = document.getElementById('unfriendModal');
+  var unfriendClose = document.getElementById('unfriendModalClose');
+  var unfriendCancel = document.getElementById('unfriendModalCancel');
+
+  if (unfriendBtn) {
+    unfriendBtn.addEventListener('click', function() {
+      unfriendModal.classList.add('open');
+    });
+  }
+
+  if (unfriendClose) {
+    unfriendClose.addEventListener('click', function() { unfriendModal.classList.remove('open'); });
+  }
+
+  if (unfriendCancel) {
+    unfriendCancel.addEventListener('click', function() { unfriendModal.classList.remove('open'); });
+  }
+
+  if (unfriendModal) {
+    unfriendModal.addEventListener('click', function(e) {
+      if (e.target === unfriendModal) unfriendModal.classList.remove('open');
+    });
+  }
+
   // ── Direct image uploads ──
   var profileImgInput = document.getElementById('profileImageInput');
   var coverImgInput = document.getElementById('coverImageInput');

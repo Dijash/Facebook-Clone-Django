@@ -25,6 +25,7 @@ urlpatterns = [
     path('friend/accept/<int:request_id>/', views.accept_friend_request, name='accept_friend_request'),
     path('friend/reject/<int:request_id>/', views.reject_friend_request, name='reject_friend_request'),
     path('friend/cancel/<int:request_id>/', views.cancel_friend_request, name='cancel_friend_request'),
+    path('friend/unfriend/<int:user_id>/', views.unfriend, name='unfriend'),
     path('notifications/read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('', views.homepage, name='home'),
 ]

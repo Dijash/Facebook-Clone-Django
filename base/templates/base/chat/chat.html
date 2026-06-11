@@ -30,8 +30,20 @@
     <div class="chat-messages" id="chatMessages"></div>
     <form class="chat-input-area" id="chatForm" style="display:none;">
         {% csrf_token %}
-        <input type="text" name="message" placeholder="Type a message..." required>
+        <button type="button" class="chat-emoji-btn" id="emojiBtn"><i class="fa-regular fa-face-smile"></i></button>
+        <input type="text" name="message" placeholder="Type a message..." required id="chatMessageInput" autocomplete="off">
         <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+        <div class="chat-emoji-picker" id="emojiPicker">
+            <div class="emoji-picker-header">Emojis</div>
+            <div class="emoji-grid">
+                <span>😀</span><span>😃</span><span>😄</span><span>😁</span><span>😅</span><span>😂</span>
+                <span>🤣</span><span>😊</span><span>😇</span><span>🙂</span><span>😉</span><span>😌</span>
+                <span>😍</span><span>🥰</span><span>😘</span><span>😗</span><span>😙</span><span>😚</span>
+                <span>❤️</span><span>🧡</span><span>💛</span><span>💚</span><span>💙</span><span>💜</span>
+                <span>👍</span><span>👎</span><span>👏</span><span>🙌</span><span>🤝</span><span>🔥</span>
+                <span>🎉</span><span>🎊</span><span>✨</span><span>💯</span><span>✅</span><span>❌</span>
+            </div>
+        </div>
     </form>
     <div class="chat-placeholder" id="chatPlaceholder">Select a friend to start chatting</div>
 </div>
@@ -45,9 +57,9 @@ var lastId = 0;
 var pollTimer = null;
 var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-function scrollBottom() {
+function scrollTop() {
     var box = document.getElementById('chatMessages');
-    box.scrollTop = box.scrollHeight;
+    box.scrollTop = 0;
 }
 
 function formatTime(iso) {
@@ -162,11 +174,12 @@ function openChat(userId, skipHistory) {
         }
 
         if (data.messages && data.messages.length) {
-            data.messages.forEach(function(msg) {
+            for (var i = data.messages.length - 1; i >= 0; i--) {
+                var msg = data.messages[i];
                 var isOwn = msg.sender === '{{ request.user.username }}';
                 chatBox.appendChild(renderMessage(msg, isOwn));
                 if (msg.id > lastId) lastId = msg.id;
-            });
+            }
         } else {
             chatBox.innerHTML = '<div style="text-align:center;color:#65676b;margin-top:40px;">No messages yet. Say hello!</div>';
         }
@@ -176,14 +189,14 @@ function openChat(userId, skipHistory) {
             entry.classList.remove('chat-user-unread');
             var msgDiv = entry.querySelector('.chat-user-msg');
             if (data.messages && data.messages.length) {
-                var last = data.messages[data.messages.length - 1];
-                msgDiv.textContent = (last.sender === '{{ request.user.username }}' ? 'You: ' : '') + last.message;
+                var latest = data.messages[0];
+                msgDiv.textContent = (latest.sender === '{{ request.user.username }}' ? 'You: ' : '') + latest.message;
             } else {
                 msgDiv.textContent = 'No messages yet';
             }
         }
 
-        scrollBottom();
+        scrollTop();
         updateBadge(data.unread_count);
         pollTimer = setInterval(poll, 2000);
     });
@@ -219,18 +232,19 @@ function poll() {
             var chatBox = document.getElementById('chatMessages');
             var empty = chatBox.querySelector('div[style*="text-align:center"]');
             if (empty) empty.remove();
-            data.messages.forEach(function(msg) {
+            for (var i = data.messages.length - 1; i >= 0; i--) {
+                var msg = data.messages[i];
                 var isOwn = msg.sender === '{{ request.user.username }}';
-                chatBox.appendChild(renderMessage(msg, isOwn));
+                chatBox.insertBefore(renderMessage(msg, isOwn), chatBox.firstChild);
                 if (msg.id > lastId) lastId = msg.id;
-            });
-            var last = data.messages[data.messages.length - 1];
+            }
+            var latest = data.messages[0];
             var entry = document.querySelector('.chat-user[data-user-id="' + activeUserId + '"]');
             if (entry) {
                 var msgDiv = entry.querySelector('.chat-user-msg');
-                msgDiv.textContent = (last.sender === '{{ request.user.username }}' ? 'You: ' : '') + last.message;
+                msgDiv.textContent = (latest.sender === '{{ request.user.username }}' ? 'You: ' : '') + latest.message;
             }
-            scrollBottom();
+            scrollTop();
         }
         if (data.unread_count !== undefined) {
             updateBadge(data.unread_count);
@@ -285,12 +299,41 @@ document.getElementById('chatForm').addEventListener('submit', function(e) {
             var chatBox = document.getElementById('chatMessages');
             var empty = chatBox.querySelector('div[style*="text-align:center"]');
             if (empty) empty.remove();
-            chatBox.appendChild(renderMessage(data, true));
+            chatBox.insertBefore(renderMessage(data, true), chatBox.firstChild);
             if (data.id > lastId) lastId = data.id;
-            scrollBottom();
+            scrollTop();
         }
     });
 });
+
+// ── Emoji picker ──
+var emojiBtn = document.getElementById('emojiBtn');
+var emojiPicker = document.getElementById('emojiPicker');
+var chatInput = document.getElementById('chatMessageInput');
+
+if (emojiBtn) {
+  emojiBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    emojiPicker.classList.toggle('open');
+  });
+}
+
+document.addEventListener('click', function(e) {
+  if (emojiPicker && !e.target.closest('.chat-emoji-picker') && !e.target.closest('.chat-emoji-btn')) {
+    emojiPicker.classList.remove('open');
+  }
+});
+
+if (emojiPicker) {
+  emojiPicker.addEventListener('click', function(e) {
+    var span = e.target.closest('.emoji-grid span');
+    if (span && chatInput) {
+      chatInput.value += span.textContent;
+      chatInput.focus();
+      emojiPicker.classList.remove('open');
+    }
+  });
+}
 
 (function init() {
     var params = new URLSearchParams(window.location.search);

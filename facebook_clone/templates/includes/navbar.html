@@ -8,7 +8,7 @@
     </a>
     <form class="navbar-search" id="navbarSearch" action="{% url 'search' %}" method="GET">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" name="q" placeholder="Search Facebook" value="{{ request.GET.q }}" />
+      <input type="text" name="q" placeholder="Search Facebook" value="{{ request.GET.q }}" autocomplete="off" />
     </form>
   </div>
 
@@ -50,7 +50,7 @@
           <hr class="divider" />
           {% endif %}
       {% for n in notifications %}
-            <a href="{% if n.notification_type == 'new_post' %}{% url 'home' %}{% else %}{% url 'friends' %}{% endif %}" class="dropdown-item notif-item {% if not n.is_read %}notif-unread{% else %}notif-read{% endif %}" data-notif-id="{{ n.id }}">
+            <a href="{% if n.notification_type == 'new_post' and n.sender %}{% url 'user_profile' n.sender.username %}{% elif n.notification_type == 'friend_request' %}{% url 'friends' %}{% else %}{% url 'home' %}{% endif %}" class="dropdown-item notif-item {% if not n.is_read %}notif-unread{% else %}notif-read{% endif %}" data-notif-id="{{ n.id }}">
               <div class="dropdown-icon"><i class="fa-solid {% if n.notification_type == 'new_post' %}fa-file-lines{% else %}fa-user-plus{% endif %}"></i></div>
               <div class="dropdown-item-text">
                 <span>{{ n.message }}</span>

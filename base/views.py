@@ -154,6 +154,7 @@ def create_post(request):
             Notification.objects.bulk_create([
                 Notification(
                     user=friend,
+                    sender=request.user,
                     message=f"{request.user.username.title()} created a new post",
                     notification_type='new_post',
                 )
@@ -357,6 +358,7 @@ def send_friend_request(request, user_id):
         Friend.objects.create(from_user=request.user, to_user=to_user, status='pending')
         Notification.objects.create(
             user=to_user,
+            sender=request.user,
             message=f"{request.user.username.title()} sent you a friend request",
             notification_type='friend_request',
         )
@@ -383,6 +385,18 @@ def cancel_friend_request(request, request_id):
     friend_req = get_object_or_404(Friend, id=request_id, from_user=request.user, status='pending')
     friend_req.delete()
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+@login_required(login_url='login')
+def unfriend(request, user_id):
+    other = get_object_or_404(User, id=user_id)
+    rel = Friend.objects.filter(
+        Q(from_user=request.user, to_user=other) | Q(from_user=other, to_user=request.user),
+        status='accepted',
+    ).first()
+    if rel:
+        rel.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'profile'))
 
 
 @login_required(login_url='login')
@@ -458,7 +472,7 @@ def get_chat_messages(request, user_id):
     messages = Chat.objects.filter(
         Q(sender=request.user, receiver=other) | Q(sender=other, receiver=request.user),
         id__gt=since,
-    ).order_by('timestamp')
+    ).order_by('-timestamp')
 
     unread = messages.filter(sender=other, receiver=request.user, is_read=False)
     unread.update(is_read=True)

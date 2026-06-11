@@ -63,7 +63,7 @@
       <form class="create-post-form" id="postForm" method="POST" action="{% url 'create_post' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="create-post-divider"></div>
-        <textarea class="create-post-textarea" name="content" placeholder="What's on your mind, {{ user.username|title }}?" rows="3"></textarea>
+        <textarea class="create-post-textarea" name="content" placeholder="What's on your mind, {{ user.username|title }}?" rows="3" autocomplete="off"></textarea>
         <div class="create-post-image-row" id="imageRow" style="display:none">
           <span class="create-post-file-name" id="fileName">No file chosen</span>
           <button type="button" class="create-post-image-remove" id="imageRemove">&times;</button>
@@ -191,22 +191,22 @@
                 {% else %}
                 <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
                 {% endif %}
-                <input class="comment-input" type="text" name="content" placeholder="Write a reply…" required />
-              </div>
-            </form>
+<input class="comment-input" type="text" name="content" placeholder="Write a reply…" required autocomplete="off" />
           </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-        <form class="comment-input-row add-comment-form" method="POST" action="{% url 'add_comment' %}">
-          {% csrf_token %}
-          <input type="hidden" name="post_id" value="{{ post.id }}" />
-          {% if user.profile.image %}
-          <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" />
-          {% else %}
-          <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
-          {% endif %}
-          <input class="comment-input" type="text" name="content" placeholder="Write a comment…" required />
+        </form>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    <form class="comment-input-row add-comment-form" method="POST" action="{% url 'add_comment' %}">
+      {% csrf_token %}
+      <input type="hidden" name="post_id" value="{{ post.id }}" />
+      {% if user.profile.image %}
+      <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" />
+      {% else %}
+      <div class="comment-input-avatar">{{ user.username|make_list|first|upper }}</div>
+      {% endif %}
+      <input class="comment-input" type="text" name="content" placeholder="Write a comment…" required autocomplete="off" />
         </form>
       </div>
     </div>
